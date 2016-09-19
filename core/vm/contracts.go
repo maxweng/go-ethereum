@@ -24,6 +24,7 @@ import (
 	"github.com/ethereum/go-ethereum/logger"
 	"github.com/ethereum/go-ethereum/logger/glog"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/snark"
 )
 
 // PrecompiledAccount represents a native ethereum contract
@@ -69,7 +70,20 @@ func PrecompiledContracts() map[string]*PrecompiledAccount {
 
 			return n.Add(n, params.IdentityGas)
 		}, memCpy},
+
+		// SNARK
+		string(common.LeftPadBytes([]byte{5}, 20)): &PrecompiledAccount{func(l int) *big.Int {
+			return big.NewInt(3000)
+		}, snarkVerifyFunc},
 	}
+}
+
+func snarkVerifyFunc(in []byte) []byte {
+	glog.V(logger.Error).Infof("SNARK is working...")
+	vk := in[:32]
+	proof := in[32:64]
+	primary := in[64:96]
+	return snark.babySnarkVerify(vk, proof, primary)
 }
 
 func sha256Func(in []byte) []byte {
