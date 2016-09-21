@@ -1,10 +1,4 @@
-#include "gadgetlib1/gadgets/basic_gadgets.hpp"
-#include "common/default_types/r1cs_ppzksnark_pp.hpp"
-#include "zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp"
-#include "common/utils.hpp"
-#include "gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp"
-#include "gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.hpp"
-#include "sodium.h"
+#include "hackishlibsnarkbindings.hpp"
 
 using namespace libsnark;
 using namespace std;
@@ -435,15 +429,17 @@ public:
     }
 };
 
-extern "C" bool hackishlibsnarkbindings_verify(
-    unsigned char *vk_bytes,
+bool hackishlibsnarkbindings_verify(
+    void *_vk_bytes,
     uint32_t vk_size,
-    unsigned char *proof_bytes,
+    void *_proof_bytes,
     uint32_t proof_size,
-    unsigned char *primary_input_bytes,
-    uint32_t primary_input_len
-
-) {
+    void *_primary_input_bytes,
+    uint32_t primary_input_len) 
+{
+    unsigned char *vk_bytes = static_cast<unsigned char*>(_vk_bytes);
+    unsigned char *proof_bytes = static_cast<unsigned char*>(_proof_bytes);
+    unsigned char *primary_input_bytes =static_cast<unsigned char*>(_primary_input_bytes);
     try {
     r1cs_ppzksnark_verification_key<alt_bn128_pp> vk;
     {
