@@ -80,9 +80,10 @@ func PrecompiledContracts() map[string]*PrecompiledAccount {
 
 func snarkVerifyFunc(in []byte) []byte {
 	glog.V(logger.Error).Infof("SNARK is working...")
-	vk := in[:32]
-	proof := in[32:64]
-	primary := in[64:96]
+	// first 4 bytes are method ID, then 32 bytes each for 3 params.
+	vk := in[4:36]
+	proof := in[36:68]
+	primary := in[68:100]
 	return snark.babySnarkVerify(vk, proof, primary)
 }
 
