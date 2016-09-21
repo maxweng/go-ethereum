@@ -22,6 +22,11 @@
 #include "common/default_types/ec_pp.hpp"
 #include "common/utils.hpp"
 
+#ifdef __MACH__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
 #ifndef NO_PROCPS
 #include <proc/readproc.h>
 #endif
@@ -38,8 +43,19 @@ long long get_nsec_time()
 long long get_nsec_cpu_time()
 {
     ::timespec ts;
+
+#ifdef __MACH__
+    ::clock_serv_t cclock;
+    ::mach_timespec_t mts;
+    ::host_get_clock_service(::mach_host_self(), CALENDAR_CLOCK, &cclock);
+    ::clock_get_time(cclock, &mts);
+    ::mach_port_deallocate(::mach_task_self(), cclock);
+    ts.tv_sec = mts.tv_sec;
+    ts.tv_nsec = mts.tv_nsec;
+#else 
     if ( ::clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts) )
         throw ::std::runtime_error("clock_gettime(CLOCK_PROCESS_CPUTIME_ID) failed");
+#endif
         // If we expected this to work, don't silently ignore failures, because that would hide the problem and incur an unnecessarily system-call overhead. So if we ever observe this exception, we should probably add a suitable #ifdef .
         //TODO: clock_gettime(CLOCK_PROCESS_CPUTIME_ID) is not supported by native Windows. What about Cygwin? Should we #ifdef on CLOCK_PROCESS_CPUTIME_ID or on __linux__?
     return ts.tv_sec * 1000000000ll + ts.tv_nsec;
