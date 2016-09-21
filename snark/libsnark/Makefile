@@ -17,9 +17,10 @@ CXXFLAGS += -std=c++11 -Wall -Wextra -Wno-unused-parameter -Wno-comment -Wfatal-
 DEPSRC = depsrc
 DEPINST = depinst
 
+CXX=g++-6
 CXXFLAGS += -I$(DEPINST)/include -Isrc
 LDFLAGS += -L$(DEPINST)/lib -Wl,-rpath,$(DEPINST)/lib
-LDLIBS += -lgmpxx -lgmp -lboost_program_options
+LDLIBS += -lgmpxx -lgmp -lboost_program_options -lsodium
 # OpenSSL and its dependencies (needed explicitly for static builds):
 LDLIBS += -lcrypto -ldl -lz
 # List of .a files to include within libsnark.a and libsnark.so:
@@ -201,11 +202,11 @@ $(LIBSNARK_A): $(LIB_OBJS) $(AR_LIBS)
 	  if [ -n "$(AR_LIBS)" ]; then for AR_LIB in $(AR_LIBS); do echo addlib $$AR_LIB; done; fi; \
 	  echo "save"; \
 	  echo "end"; \
-	) | $(AR) -M
-	$(AR) s $(LIBSNARK_A)
+	) 
+	$(AR) -rc $(LIBSNARK_A) $(LIB_OBJS)
 
 libsnark.so: $(LIBSNARK_A) $(DEPINST_EXISTS)
-	$(CXX) -o $@   --shared -Wl,--whole-archive $(LIBSNARK_A) $(CXXFLAGS) $(LDFLAGS) -Wl,--no-whole-archive $(LDLIBS)
+	$(CXX) -o $@   --shared -Wl,-force_load $(LIBSNARK_A) $(CXXFLAGS) $(LDFLAGS) -Wl,-noall_load $(LDLIBS)
 
 src/gadgetlib2/tests/gadgetlib2_test: \
 	src/gadgetlib2/tests/adapters_UTEST.cpp \
